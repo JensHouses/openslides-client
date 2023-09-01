@@ -12,14 +12,17 @@
                 </ul>
             </div>
             <div *ngIf="poll.isListPoll && poll.options[0]?.contentTitlesAsSortedArray.length">
-                {{ 'Nomination list' | translate }} ({{ poll.options[0]?.contentTitlesAsSortedArray.length }} {{ 'Candidates' | translate }}):
+                {{ 'Nomination list' | translate }} ({{ poll.options[0]?.contentTitlesAsSortedArray.length }}
+                {{ 'Candidates' | translate }}):
                 <ol *ngIf="enumerateCandidates">
                     <li *ngFor="let title of poll.options[0]?.contentTitlesAsSortedArray">
-                        {{ title.title }}{{ title.subtitle ? ' (' + title.subtitle + ')' : ''}}</li>
+                        {{ title.title }}{{ title.subtitle ? ' (' + title.subtitle + ')' : '' }}
+                    </li>
                 </ol>
                 <ul *ngIf="!enumerateCandidates">
                     <li *ngFor="let title of poll.options[0]?.contentTitlesAsSortedArray">
-                        {{ title.title }}{{ title.subtitle ? ' (' + title.subtitle + ')' : ''}}</li>
+                        {{ title.title }}{{ title.subtitle ? ' (' + title.subtitle + ')' : '' }}
+                    </li>
                 </ul>
             </div>
             <div *ngIf="hasGlobalOptionEnabled">
@@ -39,8 +42,8 @@
             {{ 'Entitled to vote' | translate }}:
 
             <span *ngFor="let group of poll.entitled_groups; let last = last">
-                {{ group.getTitle() | translate }}
-                <span *ngIf="!last">,</span>
+                <span>{{ group.getTitle() | translate }}</span>
+                <span *ngIf="!last">,&ensp;</span>
             </span>
             <br />
         </small>

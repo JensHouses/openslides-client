@@ -12,7 +12,7 @@ export type UserSortProperty = 'first_name' | 'last_name' | 'number';
 /**
  * Iterable pre selection of genders
  */
-export const GENDERS = [_(`female`), _(`male`), _(`diverse`)];
+export const GENDERS = [_(`female`), _(`male`), _(`diverse`), _(`non-binary`)];
 
 /**
  * Representation of a user in contrast to the operator.
@@ -39,11 +39,12 @@ export class User extends BaseDecimalModel<User> {
     public readonly default_structure_level!: string;
     public readonly structure_level_$!: string[];
     public readonly email!: string;
-    public readonly last_email_send!: number; // comes in seconds
+    public readonly last_email_sent!: number; // comes in seconds
     public readonly last_login!: number; // comes in seconds
     public readonly vote_weight_$!: number[];
     public readonly default_vote_weight!: number;
     public readonly is_demo_user!: boolean;
+    public readonly saml_id!: string;
 
     // Meeting and committee
     public meeting_ids!: Id[]; // (meeting/user_ids)[];
@@ -158,11 +159,16 @@ export class User extends BaseDecimalModel<User> {
     }
 
     public vote_delegated_to_id(meetingId: Id): Id {
-        return (this as any)[`vote_delegated_$${meetingId}_to_id`];
+        return this.vote_delegated_$_to_id?.includes(`${meetingId}`)
+            ? (this as any)[`vote_delegated_$${meetingId}_to_id`]
+            : undefined;
     }
 
     public vote_delegations_from_ids(meetingId: Id): Id[] {
-        return (this as any)[`vote_delegations_$${meetingId}_from_ids`] || [];
+        if (this.vote_delegations_$_from_ids?.includes(`${meetingId}`)) {
+            return (this as any)[`vote_delegations_$${meetingId}_from_ids`] || [];
+        }
+        return [];
     }
 
     /**
@@ -184,6 +190,7 @@ export class User extends BaseDecimalModel<User> {
         `tech_id`,
         `member_id`,
         `username`,
+        `saml_id`,
         `pronoun`,
         `title`,
         `first_name`,
@@ -197,7 +204,7 @@ export class User extends BaseDecimalModel<User> {
         `default_number`,
         `default_structure_level`,
         `default_vote_weight`,
-        `last_email_send`,
+        `last_email_sent`,
         `is_demo_user`,
         `last_login`,
         `organization_management_level`,
