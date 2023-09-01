@@ -556,7 +556,7 @@ export abstract class BaseImportService<MainModel extends Identifiable> implemen
      * @returns an object which has the headers of the models used internal
      */
     private createRawImportModel(line: CsvJsonMapping, index: number): RawImportModel<MainModel> {
-        const rawObject = Object.keys(this._mapReceivedExpectedHeaders).mapToObject(expectedHeader => {
+        const rawObject = Object.keys(this._mapReceivedExpectedHeaders).mapToObject<any>(expectedHeader => {
             const receivedHeader = this._mapReceivedExpectedHeaders[expectedHeader];
             return { [expectedHeader]: line[receivedHeader] };
         });
@@ -756,7 +756,7 @@ export abstract class BaseImportService<MainModel extends Identifiable> implemen
     private async propagateNextNewEntries(): Promise<void> {
         const rawEntries = this._csvLines.map((line, i) => this.createRawImportModel(line, i + 1));
         await this.onBeforeCreatingImportModels(rawEntries);
-        for (let entry of rawEntries) {
+        for (const entry of rawEntries) {
             const nextEntry = await this.createImportModel(entry);
             this.pushNextNewEntry(nextEntry);
         }

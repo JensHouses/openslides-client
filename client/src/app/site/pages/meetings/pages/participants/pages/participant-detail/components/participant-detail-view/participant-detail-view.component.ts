@@ -112,10 +112,10 @@ export class ParticipantDetailViewComponent extends BaseMeetingComponent {
     }
 
     private _userId: Id | undefined = undefined; // Not initialized
-    private _isVoteWeightEnabled: boolean = false;
-    private _isVoteDelegationEnabled: boolean = false;
-    private _isElectronicVotingEnabled: boolean = false;
-    private _isUserInScope: boolean = false;
+    private _isVoteWeightEnabled = false;
+    private _isVoteDelegationEnabled = false;
+    private _isElectronicVotingEnabled = false;
+    private _isUserInScope = false;
 
     public constructor(
         componentServiceCollector: MeetingComponentServiceCollectorService,
@@ -312,10 +312,18 @@ export class ParticipantDetailViewComponent extends BaseMeetingComponent {
             if (this.personalInfoFormValue.vote_delegated_to_id === 0) {
                 this.personalInfoFormValue.vote_delegated_to_id = null;
             }
-            await this.repo
-                .update(this.personalInfoFormValue, this.user!)
-                .concat(this.repo.setPresent(isPresent, this.user!))
-                .resolve();
+            const payload = {
+                ...this.personalInfoFormValue,
+                vote_delegated_to_id: this.personalInfoFormValue.vote_delegated_to_id
+                    ? this.repo.getViewModel(this.personalInfoFormValue.vote_delegated_to_id).getMeetingUser().id
+                    : null,
+                vote_delegations_from_ids: this.personalInfoFormValue.vote_delegations_from_ids
+                    ? this.personalInfoFormValue.vote_delegations_from_ids
+                          .map(id => this.repo.getViewModel(id).getMeetingUser().id)
+                          .filter(id => !!id)
+                    : []
+            };
+            await this.repo.update(payload, this.user!).concat(this.repo.setPresent(isPresent, this.user!)).resolve();
         } else {
             await this.repo.updateSelf(this.personalInfoFormValue, this.user!);
         }

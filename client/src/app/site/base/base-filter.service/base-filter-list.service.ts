@@ -116,7 +116,6 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
      * The currently used filters.
      */
     private set filterDefinitions(filters: OsFilter<V>[]) {
-        console.log("set filterDefinitions:", filters)
         filters.forEach(def => {
             if (!Number.isInteger(def.count)) {
                 def.count = this.getCountForFilterOptions(def);
@@ -153,7 +152,7 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
      */
     public async initFilters(inputData: Observable<V[]>): Promise<void> {
         const storedFilter = await this.loadFilters();
-        console.log("initFilters storedFilter:", storedFilter);
+
         if (storedFilter && this.isOsFilter(storedFilter)) {
             this.filterDefinitions = storedFilter;
             this.activeFiltersToStack();
@@ -162,15 +161,18 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
             this.storeActiveFilters();
         }
 
+        this.exitFilterService();
+        this.inputDataSubscription = inputData.subscribe(data => {
+            this._source.next(this.preFilter(data));
+            this.updateFilteredData();
+        });
+    }
+
+    public exitFilterService(): void {
         if (this.inputDataSubscription) {
             this.inputDataSubscription.unsubscribe();
             this.inputDataSubscription = null;
         }
-        this.inputDataSubscription = inputData.subscribe(data => {
-            this._source.next(this.preFilter(data));
-            console.log("run this.updateFilteredData() this.inputDataSubscription = inputData.subscribe line 170")
-            this.updateFilteredData();
-        });
     }
 
     public getViewModelListObservable(): Observable<V[]> {
@@ -185,9 +187,11 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
         if (!this.filterDefinitions) {
             return;
         }
+
         const nextDefinitions = this.getFilterDefinitions();
 
-        let storedFilters: OsFilter<V>[] = (await this.loadFilters()) ?? [];
+        const storedFilters: OsFilter<V>[] = (await this.loadFilters()) ?? [];
+
         if (!(storedFilters && storedFilters.length && nextDefinitions && nextDefinitions.length)) {
             return;
         }
@@ -195,6 +199,7 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
         for (const nextDefinition of nextDefinitions) {
             nextDefinition.count = this.getCountForFilterOptions(nextDefinition, storedFilters);
         }
+
         this.filterDefinitions = nextDefinitions ?? []; // Prevent being null or undefined
         this.storeActiveFilters();
     }
@@ -205,7 +210,7 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
      * @param filter
      * @param update
      */
-    public clearFilter(filter: OsFilter<V>, update: boolean = true): void {
+    public clearFilter(filter: OsFilter<V>, update = true): void {
         filter.options.forEach(option => {
             if (typeof option === `object` && option.isActive) {
                 this.removeFilterOption(filter.property, option);
@@ -313,7 +318,6 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
      */
     public storeActiveFilters(): void {
         this.updateFilteredData();
-
         this.activeFiltersStore.save<V>(this.storageKey, this.filterDefinitions);
     }
 
