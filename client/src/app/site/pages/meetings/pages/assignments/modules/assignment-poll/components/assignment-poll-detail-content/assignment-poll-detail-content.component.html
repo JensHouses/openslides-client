@@ -29,7 +29,7 @@
                 <td class="voting-option">
                     <ng-container *ngTemplateOutlet="showListForRow; context: { row: row }"></ng-container>
                     <div *ngIf="row.class !== 'list'">
-                        <span clsupass="candidate-name">
+                        <span class="candidate-name">
                             {{ row.votingOption | pollKeyVerbose | translate }}
                         </span>
                         <span class="user-subtitle" *ngIf="row.votingOptionSubtitle">
