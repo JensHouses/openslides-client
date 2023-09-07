@@ -12,7 +12,7 @@ import { GlobalSearchComponent } from '../global-search/global-search.component'
     styleUrls: [`./global-headbar.component.scss`]
 })
 export class GlobalHeadbarComponent {
-    public isSearchEnabled = false;
+    public isSearchEnabled = true;
 
     public get displayName(): string {
         if (this.activeMeeting.meeting) {
