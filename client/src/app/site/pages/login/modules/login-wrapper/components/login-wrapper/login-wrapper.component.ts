@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { BaseComponent } from 'src/app/site/base/base.component';
 import { ComponentServiceCollectorService } from 'src/app/site/services/component-service-collector.service';
+import { LifecycleService } from 'src/app/site/services/lifecycle.service';
 
 @Component({
     selector: `os-login-wrapper`,
@@ -9,7 +10,7 @@ import { ComponentServiceCollectorService } from 'src/app/site/services/componen
     styleUrls: [`./login-wrapper.component.scss`]
 })
 export class LoginWrapperComponent extends BaseComponent implements OnInit {
-    public constructor(componentServiceCollector: ComponentServiceCollectorService, translate: TranslateService) {
+    public constructor(componentServiceCollector: ComponentServiceCollectorService, translate: TranslateService, private lifecycleService: LifecycleService,) {
         super(componentServiceCollector, translate);
     }
 
@@ -18,5 +19,9 @@ export class LoginWrapperComponent extends BaseComponent implements OnInit {
      */
     public ngOnInit(): void {
         super.setTitle(`Login`);
+    }
+
+    public resetCache(): void {
+        this.lifecycleService.reset();
     }
 }
