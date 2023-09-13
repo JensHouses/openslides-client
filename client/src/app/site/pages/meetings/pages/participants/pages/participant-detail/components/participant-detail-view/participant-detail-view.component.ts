@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { Id } from 'src/app/domain/definitions/key-types';
+import { OML } from 'src/app/domain/definitions/organization-permission';
 import { Permission } from 'src/app/domain/definitions/permission';
 import { BaseMeetingComponent } from 'src/app/site/pages/meetings/base/base-meeting.component';
 import { ViewGroup } from 'src/app/site/pages/meetings/pages/participants';
@@ -21,6 +23,7 @@ import { PromptService } from 'src/app/ui/modules/prompt-dialog';
 import { ParticipantPdfExportService } from '../../../../export/participant-pdf-export.service';
 import { GroupControllerService } from '../../../../modules';
 import { getParticipantMinimalSubscriptionConfig } from '../../../../participants.subscription';
+import { areGroupsDiminished } from '../../../participant-list/components/participant-list/participant-list.component';
 
 @Component({
     selector: `os-participant-detail-view`,
@@ -64,6 +67,11 @@ export class ParticipantDetailViewComponent extends BaseMeetingComponent {
                 return PERSONAL_FORM_CONTROLS.includes(controlName);
             }
         };
+    }
+
+    public get operatorHasEqualOrHigherOML(): boolean {
+        const userOML = this.user?.organization_management_level;
+        return userOML ? this.operator.hasOrganizationPermissions(userOML as OML) : true;
     }
 
     public isFormValid = false;
@@ -284,8 +292,8 @@ export class ParticipantDetailViewComponent extends BaseMeetingComponent {
      * (Re)- send an invitation email for this user after confirmation
      */
     public async sendInvitationEmail(): Promise<void> {
-        const title = this.translate.instant(`Sending an invitation email`);
-        const content = this.translate.instant(`Are you sure you want to send an invitation email to the user?`);
+        const title = _(`Sending an invitation email`);
+        const content = _(`Are you sure you want to send an invitation email to the user?`);
         if (await this.promptService.open(title, content)) {
             this.userController
                 .sendInvitationEmails([this.user!], this.activeMeetingId)
@@ -323,7 +331,22 @@ export class ParticipantDetailViewComponent extends BaseMeetingComponent {
                           .filter(id => !!id)
                     : []
             };
-            await this.repo.update(payload, this.user!).concat(this.repo.setPresent(isPresent, this.user!)).resolve();
+            const title = _(`This action will remove you from one or more groups.`);
+            const content = _(
+                `This may diminish your ability to do things in this meeting and you may not be able to revert it by youself. Are you sure you want to do this?`
+            );
+            if (
+                !(
+                    this.user.id === this.operator.operatorId &&
+                    areGroupsDiminished(this.operator.user.group_ids(), payload.group_ids, this.activeMeeting)
+                ) ||
+                (await this.promptService.open(title, content))
+            ) {
+                await this.repo
+                    .update(payload, this.user!)
+                    .concat(this.repo.setPresent(isPresent, this.user!))
+                    .resolve();
+            }
         } else {
             await this.repo.updateSelf(this.personalInfoFormValue, this.user!);
         }
