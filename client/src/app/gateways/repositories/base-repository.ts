@@ -302,6 +302,18 @@ export abstract class BaseRepository<V extends BaseViewModel, M extends BaseMode
     }
 
     /**
+     * Clears the repository.
+     */
+    protected clearViewModelStore(): void {
+        this.viewModelStore = {};
+        this.viewModelStoreSubject.next(this.viewModelStore);
+        for (const key of Object.keys(this.sortListServices)) {
+            this.sortedViewModelLists[key] = [];
+        }
+        this.processSortedViewModelList();
+    }
+
+    /**
      * Updates or creates all given models in the repository (internally, no requests).
      * Changes need to be committed via `commitUpdate()`.
      *
@@ -461,13 +473,6 @@ export abstract class BaseRepository<V extends BaseViewModel, M extends BaseMode
     }
 
     /**
-     * Clears the repository.
-     */
-    protected clearViewModelStore(): void {
-        this.viewModelStore = {};
-        this.viewModelStoreSubject.next(this.viewModelStore);
-    }
-    /**
      * The function used for sorting the data of this repository. The default sorts by ID.
      */
     protected viewModelSortFn: (a: V, b: V) => number = (a: V, b: V) => a.id - b.id;
@@ -497,7 +502,7 @@ export abstract class BaseRepository<V extends BaseViewModel, M extends BaseMode
         return viewModel;
     }
 
-    protected onCreateViewModel(viewModel: V): void {}
+    protected onCreateViewModel(_viewModel: V): void {}
 
     private updateViewModelListSubject(viewModels: V[]): void {
         this.viewModelListSubject.next(viewModels?.filter(m => m.canAccess())?.sort(this.viewModelSortFn));

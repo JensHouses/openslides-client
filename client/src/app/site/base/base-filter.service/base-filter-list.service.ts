@@ -283,6 +283,9 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
                                 condition: model.id,
                                 label: model.getTitle(),
                                 isChild: !!model.parent,
+                                isActive: (<OsFilterOption>(
+                                    filter.options.find(f => (<OsFilterOption>f)?.condition === model.id)
+                                ))?.isActive,
                                 children:
                                     model.children && model.children.length
                                         ? model.children.map((child: any) => ({
@@ -410,7 +413,7 @@ export abstract class BaseFilterListService<V extends BaseViewModel> implements 
      * Returns an array with custom arguments for said function.
      * If any filter property needs to receive arguments this function may be expanded.
      */
-    protected getFilterPropertyFunctionArguments(property: keyof V): any[] {
+    protected getFilterPropertyFunctionArguments(_property: keyof V): any[] {
         return [];
     }
 
